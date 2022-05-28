@@ -2,6 +2,7 @@ package todo_test
 
 import (
 	"github.com/gabrielbussolo/todo"
+	"os"
 	"testing"
 )
 
@@ -58,6 +59,33 @@ func TestTodoList(t *testing.T) {
 
 		if l[1].Task != tasks[2] {
 			t.Errorf("Expected %q, got %q", tasks[2], l[1].Task)
+		}
+	})
+	t.Run("save and get file", func(t *testing.T) {
+		l1 := todo.List{}
+		l2 := todo.List{}
+
+		taskName := "New Task"
+		l1.Add(taskName)
+
+		if l1[0].Task != taskName {
+			t.Errorf("Expected task name %q, got %q", taskName, l1[0].Task)
+		}
+
+		temp, err := os.CreateTemp("", "")
+		if err != nil {
+			t.Fatalf("Error creating temp file: %s", err)
+		}
+		defer os.Remove(temp.Name())
+
+		if err := l1.Save(temp.Name()); err != nil {
+			t.Fatalf("Error saving list to a file: %s", err)
+		}
+		if err := l2.Get(temp.Name()); err != nil {
+			t.Fatalf("Error getting list from temp file: %s", err)
+		}
+		if l1[0].Task != l2[0].Task {
+			t.Errorf("Task %q should be equal to task %q", l1[0].Task, l2[0].Task)
 		}
 	})
 }
